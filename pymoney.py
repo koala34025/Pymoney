@@ -125,8 +125,12 @@ def save(initial_money, records):
     except:
         sys.stderr.write('Fail to write records into records.txt.\n')
 
+<<<<<<< HEAD
 # Store the records in a list of lists of 2 strings: [[desc1, amt1], [desc2, amt2], ...]
 initial_money, records = initialize() 
+=======
+initial_money, records = initialize()
+>>>>>>> 8eb18d41b21403c3206f4960b8fec55e435add93
 
 while True:
     command = input('\nWhat do you want to do (add / view / delete / exit)? ')
