@@ -40,6 +40,7 @@ def initialize():
     # If there is no line in the file -> IndexError
     # If any of the line cannot be interpreted as an initial amount of money or a record -> ValueError
     except (IndexError, ValueError):
+        # Write out what is wrong in records.txt
         sys.stderr.write(f'Invalid format in records.txt: {repr(wrong_msg)}. Deleting the contents.\n')
         initial_money = get_init_money()
         records.clear()
@@ -117,23 +118,61 @@ def delete(records):
     finally:
         return records
     
+def edit(records):
+    try:
+        wanna_edit = int(input("Which record do you want to edit (0 to skip)? No."))
+        assert 0 <= wanna_edit <= len(records) # Ensure that the input is within the bounds
+        
+    except ValueError:
+        # If the input cannot be converted into an integer
+        sys.stderr.write('Invalid format. Fail to edit a record.\n')
+        return records
+        
+    except AssertionError:
+        # If the input is out of bounds
+        sys.stderr.write(f'There\'s no record with No.{wanna_edit}. Fail to edit a record.\n')
+        return records
+        
+    if wanna_edit == 0: # Do nothing if the input is 0
+        return records
+        
+    record = input("Edit the record with new description and amount:\n")
+    
+    try:
+        desc, amt = record.split()
+    except ValueError:
+        # If the input string cannot be split into a list of two strings
+        sys.stderr.write('The format of a record should be like this: breakfast -50.\n')
+        sys.stderr.write('Fail to edit a record.\n')
+        return records
+
+    try:
+        int(amt) # Check if amt is a numberic string
+    except ValueError:
+        # If amt cannot be converted to integer
+        sys.stderr.write('Invalid value for money.\n')
+        sys.stderr.write('Fail to edit a record.\n')
+        return records
+    
+    wanna_edit -= 1 # Need adjustment becuase No. is 1 based and the index is 0 based
+    # Edit the record
+    records[wanna_edit] = [desc, amt]
+    
+    return records
+    
 def save(initial_money, records):
     try:
         with open('records.txt', 'w') as fh:
             fh.write(f'init,{initial_money}\n') # Comma seperate style
-            fh.writelines(f'{desc},{amt}\n' for desc, amt in records)
+            fh.writelines(f'{desc},{amt}\n' for desc, amt in records) # Writelines
     except:
         sys.stderr.write('Fail to write records into records.txt.\n')
 
-<<<<<<< HEAD
 # Store the records in a list of lists of 2 strings: [[desc1, amt1], [desc2, amt2], ...]
 initial_money, records = initialize() 
-=======
-initial_money, records = initialize()
->>>>>>> 8eb18d41b21403c3206f4960b8fec55e435add93
 
 while True:
-    command = input('\nWhat do you want to do (add / view / delete / exit)? ')
+    command = input('\nWhat do you want to do (add / view / delete / edit / exit)? ')
     
     if command == 'add':
         records = add(records)
@@ -147,6 +186,9 @@ while True:
     elif command == 'exit':
         save(initial_money, records)
         break
+    
+    elif command == 'edit': 
+        records = edit(records) # Edit a record
         
     else:
         sys.stderr.write('Invalid command. Try again.\n')
