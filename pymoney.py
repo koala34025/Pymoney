@@ -90,12 +90,19 @@ def find(records, categories):
     desc_width = 20
     amt_width = 6
     
+    subcategories = flatten(find_subcategories(target, categories))
+
+    if len(subcategories) == 0:
+        sys.stderr.write('The specified category is not in the category list.\n')
+        sys.stderr.write('You can check the category list by command "view categories".\n')
+        sys.stderr.write('Fail to find category.\n')
+        return
+    
+    subrecords = list(filter(lambda record: record[0] in subcategories, records))
+
     print(f'Here\'s your expense and income records under category "{target}":')
     print(f'{"No.":{no_width}} {"Category":{cate_width}} {"Description":{desc_width}} {"Amount":{amt_width}}')
     print('=== =============== ==================== ======')
-    
-    subcategories = flatten(find_subcategories(target, categories))
-    subrecords = list(filter(lambda record: record[0] in subcategories, records))
 
     for no, [cate, desc, amt] in enumerate(subrecords, 1):
         print(f'{no:<{no_width}} {cate:{cate_width}} {desc:{desc_width}} {amt:{amt_width}}')
