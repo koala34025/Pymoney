@@ -5,8 +5,31 @@ class Record:
     '''Represent a records.
     '''
     def __init__(self, cate, desc, amt):
+        self.set_category(cate)
+        self.set_description(desc)
+        self.set_amount(amt)
+
+    def set_category(self, cate):
+        if not categories.is_category_valid(cate):
+            sys.stderr.write('The specified category is not in the category list.\n')
+            sys.stderr.write('You can check the category list by command "view categories".\n')
+            sys.stderr.write('Fail to add a record.\n')
+            raise ValueError
+        
         self._category = cate
+
+    def set_description(self, desc):
         self._description = desc
+
+    def set_amount(self, amt):
+        try:
+            int(amt) # Check if amt is a numberic string
+        except ValueError:
+            # If amt cannot be converted to integer
+            sys.stderr.write('Invalid value for money.\n')
+            sys.stderr.write('Fail to add a record.\n')
+            raise ValueError
+        
         self._amount = amt
 
     @property
@@ -25,20 +48,6 @@ class Record:
 class Records:
     '''Maintain a list of all the 'Record's and the initial amount of money.
     '''
-    def prompt_init_money():
-        '''Get an initial amount of money from the user
-        '''
-        try:
-            initial_money = int(input('How much money do you have? '))
-            
-        except ValueError:
-            # If the input cannot be converted to integer, set init_money to 0
-            sys.stderr.write('Invalid value for money. Set to 0 by default.\n')
-            initial_money = 0
-        
-        return initial_money
-        
-        
     def __init__(self):
         '''Initialize when re-entering the program
         '''
@@ -55,8 +64,6 @@ class Records:
                 wrong_msg = desc_cma_amt_nl
                 cate, desc, amt_nl = desc_cma_amt_nl.split(',')
                 amt = amt_nl.strip() # Discards the redundant newline character
-                int(amt) # Check if amt is a numberic string
-                # Keep records a list of lists of strings for future str operations
                 record = Record(cate, desc, amt)
                 self._records += [record]
         
@@ -75,7 +82,21 @@ class Records:
             self._records.clear()
             fh.close()
 
+            
+    def prompt_init_money():
+        '''Get an initial amount of money from the user
+        '''
+        try:
+            initial_money = int(input('How much money do you have? '))
+            
+        except ValueError:
+            # If the input cannot be converted to integer, set init_money to 0
+            sys.stderr.write('Invalid value for money. Set to 0 by default.\n')
+            initial_money = 0
+        
+        return initial_money
 
+    
     def add(self, record, categories):
         '''Add a record
         '''
@@ -87,23 +108,11 @@ class Records:
             sys.stderr.write('Fail to add a record.\n')
             return
         
-        # Handle cate not in categories
-        if not categories.is_category_valid(cate):
-            sys.stderr.write('The specified category is not in the category list.\n')
-            sys.stderr.write('You can check the category list by command "view categories".\n')
-            sys.stderr.write('Fail to add a record.\n')
-            return
-
         try:
-            int(amt) # Check if amt is a numberic string
-        except ValueError:
-            # If amt cannot be converted to integer
-            sys.stderr.write('Invalid value for money.\n')
-            sys.stderr.write('Fail to add a record.\n')
+            record = Record(cate, desc, amt)
+        except:
             return
         
-        record = Record(cate, desc, amt)
-
         self._records += [record]
 
 
@@ -188,23 +197,11 @@ class Records:
             sys.stderr.write('Fail to edit a record.\n')
             return
 
-        # Handle cate not in categories
-        if not categories.is_category_valid(cate):
-            sys.stderr.write('The specified category is not in the category list.\n')
-            sys.stderr.write('You can check the category list by command "view categories".\n')
-            sys.stderr.write('Fail to edit a record.\n')
-            return
-
         try:
-            int(amt) # Check if amt is a numberic string
-        except ValueError:
-            # If amt cannot be converted to integer
-            sys.stderr.write('Invalid value for money.\n')
-            sys.stderr.write('Fail to edit a record.\n')
+            record = Record(cate, desc, amt)
+        except:
             return
         
-        record = Record(cate, desc, amt)
-
         edit_idx -= 1 # Need adjustment becuase No. is 1 based and the index is 0 based
         # Edit the record
         self._records[edit_idx] = record
