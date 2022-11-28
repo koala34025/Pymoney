@@ -1,33 +1,37 @@
 import sys
 
-
 class Record:
     '''Represent a records.
     '''
     def __init__(self, cate, desc, amt):
+        '''Initialize a record
+        '''
         self.set_category(cate)
         self.set_description(desc)
         self.set_amount(amt)
 
     def set_category(self, cate):
+        '''Setter of _category
+        '''
         if not categories.is_category_valid(cate):
             sys.stderr.write('The specified category is not in the category list.\n')
             sys.stderr.write('You can check the category list by command "view categories".\n')
-            sys.stderr.write('Fail to add a record.\n')
             raise ValueError
         
         self._category = cate
 
     def set_description(self, desc):
+        '''Setter of _description
+        '''
         self._description = desc
 
     def set_amount(self, amt):
+        '''Setter of _amount
+        '''
         try:
             int(amt) # Check if amt is a numberic string
         except ValueError:
-            # If amt cannot be converted to integer
             sys.stderr.write('Invalid value for money.\n')
-            sys.stderr.write('Fail to add a record.\n')
             raise ValueError
         
         self._amount = amt
@@ -49,7 +53,7 @@ class Records:
     '''Maintain a list of all the 'Record's and the initial amount of money.
     '''
     def __init__(self):
-        '''Initialize when re-entering the program
+        '''Initialize records
         '''
         self._initial_money = 0
         self._records = []
@@ -58,12 +62,12 @@ class Records:
             fh = open('records.txt', 'r') 
             first_line = fh.readline()
             wrong_msg = first_line
-            self._initial_money = int(first_line.split(',')[-1].strip()) # Discard the redundant newline character
+            self._initial_money = int(first_line.split(',')[-1].strip())
             
             for desc_cma_amt_nl in fh.readlines():
                 wrong_msg = desc_cma_amt_nl
                 cate, desc, amt_nl = desc_cma_amt_nl.split(',')
-                amt = amt_nl.strip() # Discards the redundant newline character
+                amt = amt_nl.strip()
                 record = Record(cate, desc, amt)
                 self._records += [record]
         
@@ -73,10 +77,9 @@ class Records:
         except FileNotFoundError:
             self._initial_money = self.prompt_init_money()
             
-        # If there is no line in the file -> IndexError
-        # If any of the line cannot be interpreted as an initial amount of money or a record -> ValueError
+        # No line in the file -> IndexError
+        # Invalid format -> ValueError
         except (IndexError, ValueError):
-            # Write out what is wrong in records.txt
             sys.stderr.write(f'Invalid format in records.txt: {repr(wrong_msg)}. Deleting the contents.\n')
             self._initial_money = self.prompt_init_money()
             self._records.clear()
@@ -88,7 +91,6 @@ class Records:
         '''
         try:
             initial_money = int(input('How much money do you have? '))
-            
         except ValueError:
             # If the input cannot be converted to integer, set init_money to 0
             sys.stderr.write('Invalid value for money. Set to 0 by default.\n')
@@ -101,9 +103,8 @@ class Records:
         '''Add a record
         '''
         try:
-            cate, desc, amt = record.split()
+            cate, desc, amt = record.split() # Check if the input format is valid
         except ValueError:
-            # If the input string cannot be split into a list of two strings
             sys.stderr.write('The format of a record should be like this: meal breakfast -50.\n')
             sys.stderr.write('Fail to add a record.\n')
             return
@@ -111,6 +112,7 @@ class Records:
         try:
             record = Record(cate, desc, amt)
         except:
+            sys.stderr.write('Fail to add a record.\n')
             return
         
         self._records += [record]
@@ -119,7 +121,6 @@ class Records:
     def view(self):
         '''Show all the records so far
         '''
-        # Parameters for print formatting
         cate_width = 15
         no_width = 3
         desc_width = 20
@@ -135,7 +136,6 @@ class Records:
         print('===============================================')
 
         balance = self._initial_money
-        # Sum up the amount of money of records
         for record in self._records:
             balance += int(record.amount)
         
@@ -147,7 +147,7 @@ class Records:
         '''
         try:
             del_idx = int(del_idx)
-            assert 0 <= del_idx <= len(self._records) # Ensure that the input is within the bounds
+            assert 0 <= del_idx <= len(self._records)
             
         except ValueError:
             # If the input cannot be converted into an integer
@@ -163,7 +163,6 @@ class Records:
             return
         
         del_idx -= 1 # Need adjustment becuase No. is 1 based and the index is 0 based
-        # Delete the record by concating the former and the latter list
         self._records = self._records[:del_idx] + self._records[del_idx+1:]
 
 
@@ -172,7 +171,7 @@ class Records:
         '''
         try:
             edit_idx = int(edit_idx)
-            assert 0 <= edit_idx <= len(self._records) # Ensure that the input is within the bounds
+            assert 0 <= edit_idx <= len(self._records)
             
         except ValueError:
             # If the input cannot be converted into an integer
@@ -190,9 +189,8 @@ class Records:
         record = input("Edit the record with new category, description, and amount:\n")
         
         try:
-            cate, desc, amt = record.split()
+            cate, desc, amt = record.split() # Check if the input format is valid
         except ValueError:
-            # If the input string cannot be split into a list of two strings
             sys.stderr.write('The format of a record should be like this: meal breakfast -50.\n')
             sys.stderr.write('Fail to edit a record.\n')
             return
@@ -200,17 +198,16 @@ class Records:
         try:
             record = Record(cate, desc, amt)
         except:
+            sys.stderr.write('Fail to edit a record.\n')
             return
         
         edit_idx -= 1 # Need adjustment becuase No. is 1 based and the index is 0 based
-        # Edit the record
         self._records[edit_idx] = record
 
 
     def find(self, subcategories):
         '''Show all the records under a certain category and its subcategories 
         '''
-        # Parameters for print formatting
         cate_width = 15
         no_width = 3
         desc_width = 20
@@ -234,7 +231,6 @@ class Records:
         print('===============================================')
 
         total = 0
-        # Sum up the amount of money of records
         for record in subrecords:
             total += int(record.amount)
         
@@ -283,9 +279,9 @@ class Categories:
 
 
     def view(self):
+        '''Show all the categories
+        '''
         def view_categories(categories, level = -1):
-            '''Show all the categories
-            '''
             if type(categories) == str:
                 print('  ' * level + '-', categories)
             else:
@@ -296,9 +292,9 @@ class Categories:
 
 
     def is_category_valid(self, target):
+        '''Return if a category is in the category list
+        '''
         def is_category_valid_inner(target, categories):
-            '''Return if a category is in the category list
-            '''
             if type(categories) == str:
                 return categories == target
                 
@@ -311,9 +307,9 @@ class Categories:
 
 
     def find_subcategories(self, target):
+        '''Return a nested list containing a certain category and its subcategories
+        '''
         def find_subcategories_inner(target, categories):
-            '''Return a nested list containing a certain category and its subcategories
-            '''
             result = []
             for idx, e in enumerate(categories):
                 if type(e) == str:
@@ -331,9 +327,9 @@ class Categories:
 
 
     def _flatten(self, L):
+        '''Flat a nested list
+        '''
         def flatten(L):
-            '''Flat a nested list
-            '''
             if type(L) == str:
                 return [L]
 
@@ -345,7 +341,6 @@ class Categories:
         return flatten(L)
 
 
-# Store the records in a list of lists of 2 strings: [[desc1, amt1], [desc2, amt2], ...]
 categories = Categories()
 records = Records() 
 
@@ -377,7 +372,7 @@ while True:
 
     elif command == 'edit': 
         edit_idx = int(input("Which record do you want to edit (0 to skip)? No."))
-        records.edit(edit_idx) # Edit a record
+        records.edit(edit_idx)
         
     else:
         sys.stderr.write('Invalid command. Try again.\n')
