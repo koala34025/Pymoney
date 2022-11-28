@@ -307,9 +307,25 @@ class Categories:
 
 
     def find_subcategories(self, target):
-        '''Return a nested list containing a certain category and its subcategories
+        '''Return a flatten list containing a certain category and its subcategories
         '''
+        def find_subcategories_gen(target, categories, found=False):
+            '''A generator that yields the target category and its subcategories
+            '''
+            for idx, e in enumerate(categories):
+                if type(e) == str:
+                    if found:
+                        yield e
+                    if e == target:
+                        yield e
+                        if idx + 1 < len(categories) and type(categories[idx+1]) == list:
+                            yield from find_subcategories_gen(target, categories[idx+1], True)
+                else:
+                    yield from find_subcategories_gen(target, e, found)
+
         def find_subcategories_inner(target, categories):
+            '''Return a nested list containing a certain category and its subcategories
+            '''
             result = []
             for idx, e in enumerate(categories):
                 if type(e) == str:
@@ -323,8 +339,8 @@ class Categories:
 
             return result
 
-        return self._flatten(find_subcategories_inner(target, self._categories))
-
+        # return self._flatten(find_subcategories_inner(target, self._categories))
+        return [i for i in find_subcategories_gen(target, self._categories)]
 
     def _flatten(self, L):
         '''Flat a nested list
