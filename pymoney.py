@@ -57,7 +57,8 @@ class Records:
         '''
         self._initial_money = 0
         self._records = []
-        
+        self._prev_move = [] # A stack recording previous moves
+
         try:
             fh = open('records.txt', 'r') 
             first_line = fh.readline()
@@ -116,6 +117,7 @@ class Records:
             return
         
         self._records += [record]
+        self._prev_move.append(f'add {cate} {desc} {amt} {-1}')
 
 
     def view(self):
@@ -163,8 +165,9 @@ class Records:
             return
         
         del_idx -= 1 # Need adjustment becuase No. is 1 based and the index is 0 based
+        self._prev_move.append(f'delete {self._records[del_idx].category} {self._records[del_idx].description} {self._records[del_idx].amount} {del_idx}')
         self._records = self._records[:del_idx] + self._records[del_idx+1:]
-
+        
 
     def edit(self, edit_idx):
         '''Edit a record
@@ -202,6 +205,7 @@ class Records:
             return
         
         edit_idx -= 1 # Need adjustment becuase No. is 1 based and the index is 0 based
+        self._prev_move.append(f'edit {self._records[edit_idx].category} {self._records[edit_idx].description} {self._records[edit_idx].amount} {edit_idx}')
         self._records[edit_idx] = record
 
 
@@ -246,6 +250,23 @@ class Records:
                 fh.writelines(f'{record.category},{record.description},{record.amount}\n' for record in self._records) # Writelines
         except:
             sys.stderr.write('Fail to write records into records.txt.\n')
+
+    
+    def cancel(self):
+        if len(self._prev_move) == 0:
+            return
+
+        operation, cate, desc, amt, idx = self._prev_move[-1].split()
+        self._prev_move.pop()
+
+        if operation == 'add':
+            self._records.pop()
+
+        elif operation == 'delete':
+            self._records.insert(int(idx), Record(cate, desc, amt))
+
+        elif operation == 'edit':
+            self._records[int(idx)] = Record(cate, desc, amt)
 
 
 class Categories:
@@ -361,10 +382,10 @@ categories = Categories()
 records = Records() 
 
 while True:
-    command = input('\nWhat do you want to do (add / view / delete / edit / view categories / find / exit)? ')
+    command = input('\nWhat do you want to do (add / view / delete / edit / view categories / find / cancel / exit)? ')
     
     if command == 'add':
-        record = input("Add an expense or income record with category, description, and amount(separate by spaces):\n")
+        record = input("Add an expense or income record with category, description, and amount (separate by spaces):\n")
         records.add(record, categories)
         
     elif command == 'view':
@@ -389,6 +410,9 @@ while True:
     elif command == 'edit': 
         edit_idx = int(input("Which record do you want to edit (0 to skip)? No."))
         records.edit(edit_idx)
+    
+    elif command == 'cancel':
+        records.cancel() # Cancel last move
         
     else:
         sys.stderr.write('Invalid command. Try again.\n')
